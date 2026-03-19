@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: python-test-pod
+  namespace: istio-test
+spec:
+  containers:
+    - name: python
+      image: europe-west1-docker.pkg.dev/nav-data-images-prod/docker-io/python:latest
+      command: ["python"]
+      args: ["-c", "import time; print('hello from python'); time.sleep(3600)"]
+  restartPolicy: Never

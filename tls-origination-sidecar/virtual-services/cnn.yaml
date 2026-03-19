@@ -1,0 +1,21 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: edition-cnn-com
+  namespace: istio-test
+spec:
+  hosts:
+  - edition.cnn.com
+  http:
+  - match:
+    - uri:
+        exact: /world
+    - uri:
+        prefix: /world/
+    route:
+    - destination:
+        host: edition.cnn.com
+        port:
+          number: 80
+  - directResponse:
+      status: 403
