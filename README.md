@@ -280,3 +280,101 @@ spec:
           number: 80
       weight: 100
 ```
+### TLS Origination in Gateway
+
+Modify the gatweay to use HTTPS:
+```yaml
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: istio-egressgateway
+  namespace: istio-egress
+spec:
+  selector:
+    istio: egressgateway
+  servers:
+  - port:
+      number: 80
+      name: https-port-for-tls-origination
+      protocol: HTTPS
+    hosts:
+    - edition.cnn.com
+    tls:
+      mode: ISTIO_MUTUAL
+```
+
+The outgoing destination in the `VirtualService` also needs to be https:
+
+```yaml
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: direct-cnn-through-egress-gateway
+spec:
+  hosts:
+  - edition.cnn.com
+  gateways:
+  - istio-egressgateway
+  - mesh
+  http:
+  - match:
+    - gateways:
+      - mesh
+      port: 80
+    route:
+    - destination:
+        host: istio-egressgateway.istio-egress.svc.cluster.local
+        subset: cnn
+        port:
+          number: 80
+      weight: 100
+  - match:
+    - gateways:
+      - istio-egressgateway
+      port: 80
+    route:
+    - destination:
+        host: edition.cnn.com
+        port:
+          number: 443
+      weight: 100
+```
+
+A `DestinationRule` to upgrade the pod -> gateway communication to mTLS (optional):
+```yaml
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: egressgateway-for-cnn
+spec:
+  host: istio-egressgateway.istio-egress.svc.cluster.local
+  subsets:
+  - name: cnn
+    trafficPolicy:
+      loadBalancer:
+        simple: ROUND_ROBIN
+      portLevelSettings:
+      - port:
+          number: 80
+        tls:
+          mode: ISTIO_MUTUAL
+          sni: edition.cnn.com
+```
+
+And a `DestinationRule` to originate the TLS, like in the sidecar example.
+```yaml
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: originate-tls-for-edition-cnn-com
+spec:
+  host: edition.cnn.com
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    portLevelSettings:
+    - port:
+        number: 443
+      tls:
+        mode: SIMPLE # initiates HTTPS for connections to edition.cnn.com
+```
