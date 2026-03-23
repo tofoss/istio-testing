@@ -378,3 +378,60 @@ spec:
       tls:
         mode: SIMPLE # initiates HTTPS for connections to edition.cnn.com
 ```
+
+### `AuthorizationPolicy`
+While we can control access to `ServiceEntry` by setting the `exportTo` to specific namespaces, `AuthorizationPolicy` allows us true L7 controls over the traffic.
+
+Istio's authorization model is default-allow when no policies exist. Once any AuthorizationPolicy is applied to a workload, the model flips to default-deny — only traffic explicitly allowed by a policy is permitted. So we apply an empty rule to set it to default-deny:
+
+```yaml
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: egress-deny-all
+  namespace: istio-egress
+spec:
+  selector:
+    matchLabels:
+      app: istio-egressgateway
+```
+
+Now all traffic to `edition.cnn.com` returns a 403.
+
+We can add many different rules to a policy, here we add a rule wich allows traffic to `edition.cnn.com` but only if the the caller is a specific `ServiceAccount`:
+
+```yaml
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-istio-test-sa
+  namespace: istio-egress
+spec:
+  selector:
+    matchLabels:
+      app: istio-egressgateway
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/istio-test/sa/istio-test-sa"]
+    to:
+    - operation:
+        hosts: ["edition.cnn.com"]
+```
+
+Create the `ServiceAccount`:
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: istio-test-sa
+  namespace: istio-test
+```
+And update the pod to use it: 
+```yaml
+spec:
+  serviceAccountName: istio-test-sa
+```
+
+Now the pod should get a 200 again when curling `edition.cnn.com`.

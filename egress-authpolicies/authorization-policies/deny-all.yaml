@@ -1,0 +1,9 @@
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: egress-deny-all
+  namespace: istio-egress
+spec:
+  selector:
+    matchLabels:
+      app: istio-egressgateway

@@ -1,0 +1,18 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  name: egressgateway-operator
+  annotations:
+    config.kubernetes.io/local-config: "true"
+spec:
+  profile: empty
+  revision: asm-managed
+  components:
+    egressGateways:
+    - name: istio-egressgateway
+      namespace: istio-egress
+      enabled: true
+  values:
+    gateways:
+      istio-egressgateway:
+        injectionTemplate: gateway
