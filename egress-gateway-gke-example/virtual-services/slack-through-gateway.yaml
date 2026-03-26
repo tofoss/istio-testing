@@ -1,0 +1,33 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: direct-slack-through-egress-gateway
+  namespace: istio-egress
+spec:
+  hosts:
+  - slack.com
+  gateways:
+  - istio-egressgateway
+  - mesh
+  http:
+  - match:
+    - gateways:
+      - mesh
+      port: 80
+    route:
+    - destination:
+        host: istio-egressgateway.istio-egress.svc.cluster.local
+        subset: slack
+        port:
+          number: 80
+      weight: 100
+  - match:
+    - gateways:
+      - istio-egressgateway
+      port: 80
+    route:
+    - destination:
+        host: slack.com
+        port:
+          number: 443
+      weight: 100

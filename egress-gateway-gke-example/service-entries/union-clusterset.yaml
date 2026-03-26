@@ -1,0 +1,16 @@
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: union-clusterset
+  namespace: istio-egress
+spec:
+  hosts:
+  - "*.union.svc.clusterset.local"
+  ports:
+  - number: 80
+    name: http2
+    protocol: HTTP2
+  location: MESH_INTERNAL
+  resolution: NONE
+  exportTo:
+  - "*"

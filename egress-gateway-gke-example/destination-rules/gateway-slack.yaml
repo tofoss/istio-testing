@@ -1,0 +1,18 @@
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: egressgateway-for-slack
+  namespace: istio-egress
+spec:
+  host: istio-egressgateway.istio-egress.svc.cluster.local
+  subsets:
+  - name: slack
+    trafficPolicy:
+      loadBalancer:
+        simple: ROUND_ROBIN
+      portLevelSettings:
+      - port:
+          number: 80
+        tls:
+          mode: ISTIO_MUTUAL
+          sni: slack.com

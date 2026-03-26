@@ -2,9 +2,9 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: python-test-pod
-  namespace: istio-test
+  namespace: dataplattform-development
 spec:
-  serviceAccountName: istio-test-sa
+  serviceAccountName: dataplattform
   containers:
     - name: python
       image: europe-west1-docker.pkg.dev/nav-data-images-prod/docker-io/python:latest

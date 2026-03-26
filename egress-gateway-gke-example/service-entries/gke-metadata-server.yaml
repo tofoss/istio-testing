@@ -1,0 +1,21 @@
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: gke-metadata-server
+  namespace: istio-egress
+spec:
+  hosts:
+  - metadata.google.internal
+  addresses:
+  - 169.254.169.254/32
+  ports:
+  - number: 80
+    name: http
+    protocol: HTTP
+  - number: 988
+    name: metadata-internal
+    protocol: TCP
+  location: MESH_EXTERNAL
+  resolution: NONE
+  exportTo:
+  - "*"

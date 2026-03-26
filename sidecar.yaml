@@ -2,7 +2,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: Sidecar
 metadata:
   name: default
-  namespace: istio-test
+  namespace: dataplattform-development
 spec:
   outboundTrafficPolicy:
     mode: REGISTRY_ONLY
